@@ -38,18 +38,15 @@ pipeline {
                       ok: 'Tak, wdrazaj!'
             }
         }
-        stage('Wdrozenie') {
+        stage('Uruchom aplikacje') {
             steps {
-                script {
-                    if (params.SRODOWISKO == 'dev') {
-                        echo 'Wdrazam na DEV...'
-                    } else if (params.SRODOWISKO == 'staging') {
-                        echo 'Wdrazam na STAGING...'
-                    } else {
-                        echo 'Wdrazam na PRODUKCJE!'
-                    }
-                }
-                echo "Wdrozenie na ${params.SRODOWISKO} zakonczone."
+                sh '''
+                    pkill -f "python3 app.py" || true
+                    nohup python3 app.py > app.log 2>&1 &
+                    sleep 3
+                    curl -sf http://localhost:5000/ > /dev/null
+                    echo "Aplikacja dziala na porcie 5000 (srodowisko: $SRODOWISKO)"
+                '''
             }
         }
     }

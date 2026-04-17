@@ -21,14 +21,14 @@ pipeline {
                 echo "Srodowisko: ${params.SRODOWISKO}"
             }
         }
-        stage('Instalacja zaleznosci') {
-            steps {
-                sh 'pip3 install -r requirements.txt --quiet'
-            }
-        }
         stage('Testy') {
             steps {
                 sh 'python3 test_app.py'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh "docker build -t narzedzia:${env.BUILD_NUMBER} ."
             }
         }
         stage('Zatwierdzenie') {
@@ -43,12 +43,12 @@ pipeline {
                       ok: 'Tak, wdrazaj!'
             }
         }
-        stage('Uruchom aplikacje') {
+        stage('Deploy') {
             steps {
-                sh 'pkill -f "python3 app.py" || true'
-                sh 'JENKINS_NODE_COOKIE=dontKillMe nohup python3 app.py > app.log 2>&1 &'
-                sh 'sleep 3 && curl -sf http://localhost:5000/'
-                echo "Aplikacja dziala na porcie 5000 (srodowisko: ${params.SRODOWISKO})"
+                sh 'docker stop app-demo || true'
+                sh 'docker rm app-demo || true'
+                sh "docker run -d --name app-demo -p 5000:5000 narzedzia:${env.BUILD_NUMBER}"
+                echo "Aplikacja wdrozona na ${params.SRODOWISKO} — port 5000"
             }
         }
     }

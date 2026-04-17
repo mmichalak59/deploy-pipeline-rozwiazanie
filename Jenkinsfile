@@ -21,6 +21,11 @@ pipeline {
                 echo "Srodowisko: ${params.SRODOWISKO}"
             }
         }
+        stage('Instalacja zaleznosci') {
+            steps {
+                sh 'pip3 install -r requirements.txt --quiet'
+            }
+        }
         stage('Testy') {
             steps {
                 sh 'python3 test_app.py'
